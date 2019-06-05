@@ -66,8 +66,48 @@ public class TestTemplateProcessor implements DataSourceType{
         //以上流程请在这里实现：
         //
         //
-        // 这里写代码
-        //
+        DataSourceConfig dsc = EasyMock.createMock(DataSourceConfig.class);
+		  EasyMock.expect(dsc.getConstDataSource()).andReturn();
+		DataHolder b1 = EasyMock.createMock(DataHolder.class);
+		DataHolder b2 = EasyMock.createMock(DataHolder.class);
+		DataHolder b3 = EasyMock.createMock(DataHolder.class);
+		EasyMock.expect(b1.getValue()).andStubReturn("Female");
+		EasyMock.expect(b2.getValue()).andStubReturn("1");
+		EasyMock.expect(b3.getValue()).andStubReturn("1.0");
+		EasyMock.expect(b3.getExpr()).andStubReturn("${num}+${readme}");
+		EasyMock.expect(b3.fillValue()).andStubReturn(null);
+
+
+		ArrayList<DataHolder> vars = new ArrayList<DataHolder>();
+		vars.add(b1);
+		vars.add(b2);
+		vars.add(b3);
+		
+		//1. 使用EasyMock建立一个DataSourceConfig类的一个Mock对象实例；
+		//2. 录制该实例的STUB模式和行为模式（针对的是非静态方法）；
+		
+		ConstDataSource ds = EasyMock.createMock(ConstDataSource.class);
+		ds.setVars(vars);
+		EasyMock.expect(ds.getVars()).andStubReturn(vars);
+		EasyMock.expect(ds.getDataHolder("sex")).andStubReturn(b1);
+		EasyMock.expect(ds.getDataHolder("readme")).andStubReturn(b2);
+		EasyMock.expect(ds.getDataHolder("testexpr")).andStubReturn(b3);
+		EasyMock.expect(ds.getType()).andStubReturn("");
+
+		ArrayList<DataSource> dss = new ArrayList<DataSource>();
+		dss.add(ds);
+
+		//3. 使用PowerMock建立DataSourceConfig类的静态Mock；
+		//4. 录制该静态Mock的行为模式（针对的是静态方法）；
+		
+		EasyMock.expect(dsc.getDataSources()).andStubReturn(dss);
+		EasyMock.expect(dsc.getFilename()).andStubReturn("test");
+		EasyMock.expect(dsc.getConstDataSource()).andStubReturn(ds);
+		EasyMock.expect(dsc.getDataSource(null)).andStubReturn(ds);
+
+		EasyMock.replay( ds, b1, b2, b3);
+		PowerMock.mockStatic(DataSourceConfig.class);
+		EasyMock.expect(DataSourceConfig.newInstance()).andStubReturn(dsc);
         //------------------------------------------------
 		//5. 重放所有的行为。
 		PowerMock.replayAll(dsc);
